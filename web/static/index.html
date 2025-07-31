@@ -28,6 +28,7 @@
                      @drop.prevent="handleFileDrop($event)">
                     <input type="file" 
                            id="fileInput" 
+                           x-ref="fileInput"
                            accept=".txt,.md,.html,.epub,.mobi,.azw3"
                            @change="handleFileSelect($event)"
                            class="hidden">
@@ -160,10 +161,10 @@
                 </div>
                 
                 <!-- 转换结果 -->
-                <div x-show="currentTask?.status === 'completed' && currentTask?.files?.length > 0">
+                <div x-show="currentTask?.status === 'completed' && currentTask?.files && currentTask.files.length > 0">
                     <h3 class="text-lg font-medium text-gray-800 mb-3">📥 下载文件</h3>
                     <div class="space-y-2">
-                        <template x-for="file in currentTask.files" :key="file.filename">
+                        <template x-for="file in (currentTask.files || [])" :key="file.filename">
                             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                 <div class="flex items-center">
                                     <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
@@ -217,7 +218,7 @@
                     format: 'all',
                     chapterPattern: '^第.+章'
                 },
-                currentTask: null,
+                currentTask: { files: [] },
                 isConverting: false,
                 eventLogs: [],
                 eventSource: null,
@@ -302,11 +303,11 @@
 
                         // 2. 开始转换
                         const convertData = {
-                            fileId: uploadResult.data.fileId,
-                            title: this.convertOptions.title || this.selectedFile.name.replace(/\.[^/.]+$/, ''),
+                            task_id: uploadResult.data.task_id,
+                            bookname: this.convertOptions.title || this.selectedFile.name.replace(/\.[^/.]+$/, ''),
                             author: this.convertOptions.author || '未知作者',
                             format: this.convertOptions.format,
-                            chapterPattern: this.convertOptions.chapterPattern
+                            match: this.convertOptions.chapterPattern
                         };
 
                         const convertResponse = await fetch('/api/convert', {
@@ -323,19 +324,19 @@
 
                         const convertResult = await convertResponse.json();
                         this.currentTask = {
-                            taskId: convertResult.data.taskId,
+                            taskId: convertResult.data.task_id,
                             status: 'pending',
                             progress: 0,
                             files: []
                         };
 
-                        this.addLog('转换任务已创建: ' + convertResult.data.taskId);
+                        this.addLog('转换任务已创建: ' + convertResult.data.task_id);
 
                         // 3. 开始监听事件
-                        this.startEventStream(convertResult.data.taskId);
+                        this.startEventStream(convertResult.data.task_id);
 
                         // 4. 定期查询状态
-                        this.pollTaskStatus(convertResult.data.taskId);
+                        this.pollTaskStatus(convertResult.data.task_id);
 
                     } catch (error) {
                         this.addLog('错误: ' + error.message);
