@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/Deali-Axy/ebook-generator/docs" // 导入生成的Swagger文档
+	_ "github.com/Deali-Axy/ebook-generator/api-docs" // 导入生成的Swagger文档
 	"github.com/Deali-Axy/ebook-generator/internal/storage"
 	"github.com/Deali-Axy/ebook-generator/internal/web/handlers"
 	"github.com/Deali-Axy/ebook-generator/internal/web/middleware"
