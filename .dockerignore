@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Build artifacts
+*.exe
+*.tmp
+*.zio
+kaf-cli-*
+kaf-mcp
+main
+build/
+
+# Test files
+*.txt
+*.epub
+*.mobi
+*.azw3
+samples/
+
+# Documentation
+*.md
+README*
+docs/
+api-docs/
+
+# Development tools
+.aider*
+
+# Runtime directories
+web/uploads/
+web/outputs/
+
+# Dependencies (will be downloaded in container)
+go.sum
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Archived files
+docs/archived/
+
+# GitHub workflows
+.github/
+
+# Docker files (not needed in container)
+Dockerfile
+.dockerignore

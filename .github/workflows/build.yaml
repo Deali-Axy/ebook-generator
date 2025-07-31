@@ -1,8 +1,12 @@
-name: Go
+name: Build and Release
 
 on:
   release:
     types: [published]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
 
@@ -12,13 +16,13 @@ jobs:
     steps:
 
       - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ^1.21
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get dependencies
         run: |
@@ -44,7 +48,7 @@ jobs:
           GOOS=darwin  GOARCH=amd64   go build -ldflags "$flag" -o build/darwin-amd64/kaf-cli      cmd/cli/main.go
           GOOS=darwin  GOARCH=arm64   go build -ldflags "$flag" -o build/darwin-arm64/kaf-cli      cmd/cli/main.go
           GOOS=wasip1  GOARCH=wasm    go build -ldflags "$flag" -o build/wasm-wasip1/kaf-cli.wasm  cmd/cli/main.go
-          ${GOBIN}/rsrc -arch amd64 -manifest kaf-cli.exe.manifest -ico ./assets/kaf.ico -o kaf-cli.syso
+          ${GOBIN}/rsrc -arch amd64 -manifest docs/archived/kaf-cli.exe.manifest -ico ./assets/kaf.ico -o kaf-cli.syso
           GOOS=windows GOARCH=386     go build -ldflags "$flag" -o build/windows-386/kaf-cli.exe   cmd/cli/main.go
           GOOS=windows GOARCH=amd64   go build -ldflags "$flag" -o build/windows-amd64/kaf-cli.exe cmd/cli/main.go
 
@@ -66,7 +70,7 @@ jobs:
           GOOS=darwin  GOARCH=amd64   go build -ldflags "$flag" -o build/darwin-amd64/kaf-mcp      cmd/mcp/main.go
           GOOS=darwin  GOARCH=arm64   go build -ldflags "$flag" -o build/darwin-arm64/kaf-mcp      cmd/mcp/main.go
           GOOS=wasip1  GOARCH=wasm    go build -ldflags "$flag" -o build/wasm-wasip1/kaf-mcp.wasm  cmd/mcp/main.go
-          ${GOBIN}/rsrc -arch amd64 -manifest kaf-cli.exe.manifest -ico ./assets/kaf.ico -o kaf-mcp.syso
+          ${GOBIN}/rsrc -arch amd64 -manifest docs/archived/kaf-cli.exe.manifest -ico ./assets/kaf.ico -o kaf-mcp.syso
           GOOS=windows GOARCH=386     go build -ldflags "$flag" -o build/windows-386/kaf-mcp.exe   cmd/mcp/main.go
           GOOS=windows GOARCH=amd64   go build -ldflags "$flag" -o build/windows-amd64/kaf-mcp.exe cmd/mcp/main.go
 
@@ -75,7 +79,7 @@ jobs:
         run: |
           hash=`git rev-list --tags --max-count=1`
           version=`git describe --tags $hash`
-          zip -j kaf-cli_${version}_windows_amd64.zip build/windows-amd64/kaf-cli.exe windows/kindlegen.exe 注册右键菜单.ps1
+          zip -j kaf-cli_${version}_windows_amd64.zip build/windows-amd64/kaf-cli.exe windows/kindlegen.exe
           zip -j kaf-cli_${version}_windows_386.zip   build/windows-386/kaf-cli.exe windows/kindlegen.exe
           zip -j kaf-cli_${version}_darwin_amd64.zip  build/darwin-amd64/kaf-cli darwin/kindlegen
           zip -j kaf-cli_${version}_darwin_arm64.zip  build/darwin-arm64/kaf-cli darwin/kindlegen
@@ -100,8 +104,73 @@ jobs:
           zip -j kaf-mcp_${version}_wasm_wasip1.zip   build/wasm-wasip1/kaf-mcp.wasm README_wasi.md
 
       - name: Upload release binaries
+        if: github.event_name == 'release'
         uses: alexellis/upload-assets@0.2.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           asset_paths: '["./kaf-cli_*.zip", "./kaf-mcp_*.zip"]'
+
+  build-web:
+    name: Build Web Service
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ^1.21
+
+      - name: Build Web Service
+        run: |
+          go mod tidy
+          go build -o build/web/ebook-generator cmd/web/main.go
+
+      - name: Test Web Service
+        run: |
+          go test ./...
+
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
+    needs: build-web
+    steps:
+
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'release'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: dealiaxy/ebook-generator
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'release' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
