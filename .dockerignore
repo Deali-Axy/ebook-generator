@@ -36,7 +36,7 @@ web/uploads/
 web/outputs/
 
 # Dependencies (will be downloaded in container)
-go.sum
+# go.sum - needed for Docker build
 
 # OS files
 .DS_Store
