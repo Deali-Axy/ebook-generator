@@ -102,12 +102,12 @@ jobs:
         run: |
           mkdir -p kindlegen
           if [[ "${{ matrix.goos }}" == "darwin" ]]; then
-            curl -OL https://github.com/Deali-Axy/ebook-generator/releases/download/kindlegen/KindleGen_Mac_64bit_v2_9.zip
-            unzip -d kindlegen KindleGen_Mac_64bit_v2_9.zip
+            echo "Skipping KindleGen download for macOS - not available"
           elif [[ "${{ matrix.goos }}" == "windows" ]]; then
-            curl -OL https://github.com/Deali-Axy/ebook-generator/releases/download/kindlegen/kindlegen_win32_v2_9.zip
-            unzip -d kindlegen kindlegen_win32_v2_9.zip
+            echo "Skipping KindleGen download for Windows - not available"
           fi
+          # KindleGen下载链接已失效，暂时跳过下载步骤
+          # 如需要KindleGen功能，请手动提供kindlegen可执行文件
 
       - name: 安装rsrc工具（Windows）
         if: matrix.goos == 'windows'
