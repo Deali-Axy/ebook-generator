@@ -5,7 +5,6 @@ on:
   push:
     tags:
       - "v*.*.*"  # 版本标签触发
-  push:
     branches: [ main ]  # 主分支推送触发（用于测试）
   pull_request:
     branches: [ main ]  # PR触发（用于测试）
