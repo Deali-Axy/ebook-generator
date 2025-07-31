@@ -15,9 +15,9 @@ import (
 
 // StorageService 存储服务
 type StorageService struct {
-	uploadDir  string // 上传目录
-	outputDir  string // 输出目录
-	maxFileSize int64 // 最大文件大小
+	uploadDir   string // 上传目录
+	outputDir   string // 输出目录
+	maxFileSize int64  // 最大文件大小
 }
 
 // NewStorageService 创建存储服务
@@ -143,7 +143,7 @@ func (s *StorageService) GetConvertedFile(fileID string) (*models.ConvertedFile,
 
 	filePath := matches[0]
 	filename := filepath.Base(filePath)
-	
+
 	// 从文件名中提取格式
 	format := s.extractFormatFromFilename(filename)
 

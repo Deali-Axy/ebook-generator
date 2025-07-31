@@ -57,7 +57,7 @@ func Logger() gin.HandlerFunc {
 func Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
 		log.Printf("Panic recovered: %v\n%s", recovered, debug.Stack())
-		
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code":    500,
 			"message": "服务器内部错误",
@@ -86,7 +86,7 @@ func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
 		count     int
 		lastReset time.Time
 	}
-	
+
 	clients := make(map[string]*client)
 	var mu sync.RWMutex
 

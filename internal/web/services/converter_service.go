@@ -58,7 +58,7 @@ func (s *ConverterService) ConvertBook(book *model.Book, format string) ([]types
 
 		// 构建输出文件路径
 		outputFile := s.getOutputFilePath(baseOut, formatType)
-		
+
 		// 获取文件大小
 		size, err := s.getFileSize(outputFile)
 		if err != nil {

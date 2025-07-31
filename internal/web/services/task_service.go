@@ -15,11 +15,11 @@ import (
 
 // TaskService 任务服务
 type TaskService struct {
-	mu           sync.RWMutex
-	tasks        map[string]*TaskInfo
-	storageService *storage.StorageService
+	mu               sync.RWMutex
+	tasks            map[string]*TaskInfo
+	storageService   *storage.StorageService
 	converterService *ConverterService
-	eventChannels map[string]chan models.TaskEvent
+	eventChannels    map[string]chan models.TaskEvent
 }
 
 // TaskInfo 任务信息
