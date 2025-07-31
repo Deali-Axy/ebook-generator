@@ -10,7 +10,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen font-sans">
     <div class="container mx-auto px-4 py-8" x-data="ebookConverter()" x-cloak>
         <!-- 页面标题 -->
         <div class="text-center mb-8">
@@ -19,9 +19,13 @@
         </div>
 
         <!-- 主要内容区域 -->
-        <div class="max-w-4xl mx-auto">
-            <!-- 文件上传区域 -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <!-- 左侧面板: 上传与设置 -->
+            <div class="w-full transition-all duration-500 ease-in-out" 
+                 :class="uiState === 'initial' ? 'lg:w-full max-w-4xl mx-auto' : 'lg:w-1/3'">
+                
+                <!-- 文件上传区域 -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4">📁 文件上传</h2>
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
                      @dragover.prevent
@@ -125,84 +129,88 @@
                 </div>
             </div>
 
-            <!-- 任务状态区域 -->
-            <div x-show="currentTask" class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">📊 转换状态</h2>
-                
-                <!-- 任务信息 -->
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">任务ID:</span>
-                        <span class="text-sm text-gray-600" x-text="currentTask?.taskId"></span>
-                    </div>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-700">状态:</span>
-                        <span class="text-sm px-2 py-1 rounded-full"
-                              :class="{
-                                  'bg-yellow-100 text-yellow-800': currentTask?.status === 'pending',
-                                  'bg-blue-100 text-blue-800': currentTask?.status === 'processing',
-                                  'bg-green-100 text-green-800': currentTask?.status === 'completed',
-                                  'bg-red-100 text-red-800': currentTask?.status === 'failed'
-                              }"
-                              x-text="getStatusText(currentTask?.status)"></span>
-                    </div>
-                </div>
-                
-                <!-- 进度条 -->
-                <div class="mb-4">
-                    <div class="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>进度</span>
-                        <span x-text="currentTask?.progress + '%'"></span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                             :style="`width: ${currentTask?.progress || 0}%`"></div>
-                    </div>
-                </div>
-                
-                <!-- 转换结果 -->
-                <div x-show="currentTask?.status === 'completed' && currentTask?.files && currentTask.files.length > 0">
-                    <h3 class="text-lg font-medium text-gray-800 mb-3">📥 下载文件</h3>
-                    <div class="space-y-2">
-                        <template x-for="file in (currentTask.files || [])" :key="file.filename">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                                        <span class="text-blue-600 font-medium text-sm" x-text="file.format.toUpperCase()"></span>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-gray-900" x-text="file.filename"></p>
-                                        <p class="text-sm text-gray-500" x-text="formatFileSize(file.size)"></p>
-                                    </div>
-                                </div>
-                                <button @click="downloadFile(file.file_id)" 
-                                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                                    下载
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-                
-                <!-- 清理按钮 -->
-                <div class="mt-4">
-                    <button @click="cleanupTask()" 
-                            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                        🗑️ 清理任务
-                    </button>
-                </div>
-            </div>
-
-            <!-- 实时日志区域 -->
-            <div x-show="eventLogs.length > 0" class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">📝 实时日志</h2>
-                <div class="bg-gray-900 text-green-400 p-4 rounded-lg h-64 overflow-y-auto font-mono text-sm">
-                    <template x-for="log in eventLogs" :key="log.timestamp">
-                        <div class="mb-1">
-                            <span class="text-gray-500" x-text="formatTime(log.timestamp)"></span>
-                            <span x-text="log.message"></span>
                         </div>
-                    </template>
+
+            <!-- 右侧面板: 状态、日志、结果 -->
+            <div class="w-full lg:w-2/3 flex-grow transition-opacity duration-500 ease-in-out" 
+                 x-show="uiState !== 'initial'" 
+                 x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform scale-95" 
+                 x-transition:enter-end="opacity-100 transform scale-100">
+
+                <!-- 转换中视图 -->
+                <div x-show="uiState === 'converting'" class="space-y-6">
+                    <!-- 转换状态 -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">📊 转换状态</h2>
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">任务ID:</span>
+                                <span class="text-sm text-gray-600 font-mono" x-text="currentTask?.taskId"></span>
+                            </div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">状态:</span>
+                                <span class="text-sm px-2 py-1 rounded-full" :class="statusClass(currentTask?.status)" x-text="getStatusText(currentTask?.status)"></span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" :style="`width: ${currentTask?.progress || 0}%`"></div>
+                        </div>
+                    </div>
+                    <!-- 实时日志 -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">📝 实时日志</h2>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-lg h-96 overflow-y-auto font-mono text-sm">
+                            <template x-for="log in eventLogs" :key="log.timestamp">
+                                <div class="mb-1">
+                                    <span class="text-gray-500" x-text="formatTime(log.timestamp)"></span>
+                                    <span x-text="log.message"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 转换完成视图 -->
+                <div x-show="uiState === 'completed'" class="space-y-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-semibold text-gray-800">🎉 转换完成</h2>
+                            <button @click="resetTask()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">开始新转换</button>
+                        </div>
+                        <div x-show="currentTask?.status === 'completed' && currentTask?.files?.length > 0" class="space-y-3">
+                            <template x-for="file in (currentTask.files || [])" :key="file.filename">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                            <span class="text-blue-600 font-bold text-sm" x-text="file.format.toUpperCase()"></span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900" x-text="file.filename"></p>
+                                            <p class="text-sm text-gray-500" x-text="formatFileSize(file.size)"></p>
+                                        </div>
+                                    </div>
+                                    <button @click="downloadFile(file.file_id)" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">下载</button>
+                                </div>
+                            </template>
+                        </div>
+                        <div x-show="currentTask?.status === 'failed'" class="p-4 bg-red-50 text-red-700 rounded-lg">
+                            <p class="font-bold">转换失败</p>
+                            <p class="text-sm">请检查日志获取更多信息，或尝试调整设置后重新转换。</p>
+                        </div>
+                    </div>
+                    <!-- 实时日志 (缩小版) -->
+                    <div x-show="eventLogs.length > 0" class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4">📝 日志回顾</h2>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-lg h-40 overflow-y-auto font-mono text-sm">
+                            <template x-for="log in eventLogs" :key="log.timestamp">
+                                <div class="mb-1">
+                                    <span class="text-gray-500" x-text="formatTime(log.timestamp)"></span>
+                                    <span x-text="log.message"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -211,6 +219,7 @@
     <script>
         function ebookConverter() {
             return {
+                uiState: 'initial', // 'initial', 'converting', 'completed'
                 selectedFile: null,
                 convertOptions: {
                     title: '',
@@ -277,12 +286,23 @@
                     return new Date(timestamp).toLocaleTimeString();
                 },
 
+                // 获取状态对应的CSS类
+                statusClass(status) {
+                    return {
+                        'bg-yellow-100 text-yellow-800': status === 'pending',
+                        'bg-blue-100 text-blue-800': status === 'processing',
+                        'bg-green-100 text-green-800': status === 'completed',
+                        'bg-red-100 text-red-800': status === 'failed'
+                    }[status] || 'bg-gray-100 text-gray-800';
+                },
+
                 // 开始转换
                 async startConversion() {
                     if (!this.selectedFile) return;
 
                     this.isConverting = true;
                     this.eventLogs = [];
+                    this.uiState = 'converting';
 
                     try {
                         // 1. 上传文件
@@ -295,7 +315,8 @@
                         });
 
                         if (!uploadResponse.ok) {
-                            throw new Error('文件上传失败');
+                            const errorData = await uploadResponse.json().catch(() => ({ message: '文件上传失败' }));
+                            throw new Error(errorData.message);
                         }
 
                         const uploadResult = await uploadResponse.json();
@@ -319,7 +340,8 @@
                         });
 
                         if (!convertResponse.ok) {
-                            throw new Error('转换请求失败');
+                            const errorData = await convertResponse.json().catch(() => ({ message: '转换请求失败' }));
+                            throw new Error(errorData.message);
                         }
 
                         const convertResult = await convertResponse.json();
@@ -341,6 +363,8 @@
                     } catch (error) {
                         this.addLog('错误: ' + error.message);
                         this.isConverting = false;
+                        this.uiState = 'completed'; // 即使失败也进入完成状态以显示错误信息
+                        this.currentTask.status = 'failed';
                     }
                 },
 
@@ -394,22 +418,37 @@
 
                                 if (result.data.status === 'completed' || result.data.status === 'failed') {
                                     this.isConverting = false;
+                                    this.uiState = 'completed';
                                     if (this.eventSource) {
                                         this.eventSource.close();
+                                        this.eventSource = null;
                                     }
-                                    return;
+                                    // 停止轮询
+                                } else {
+                                    setTimeout(poll, 2000);
+                                }
+                            } else {
+                                // 如果请求失败，也停止轮询
+                                this.isConverting = false;
+                                this.uiState = 'completed';
+                                this.currentTask.status = 'failed';
+                                if (this.eventSource) {
+                                    this.eventSource.close();
+                                    this.eventSource = null;
                                 }
                             }
                         } catch (error) {
-                            console.error('查询状态失败:', error);
-                        }
-
-                        if (this.isConverting) {
-                            setTimeout(poll, 2000);
+                            console.error('轮询状态失败:', error);
+                            this.isConverting = false;
+                            this.uiState = 'completed';
+                            this.currentTask.status = 'failed';
+                            if (this.eventSource) {
+                                this.eventSource.close();
+                                this.eventSource = null;
+                            }
                         }
                     };
-
-                    setTimeout(poll, 1000);
+                    setTimeout(poll, 2000);
                 },
 
                 // 下载文件
@@ -439,27 +478,19 @@
                     }
                 },
 
-                // 清理任务
-                async cleanupTask() {
-                    if (!this.currentTask) return;
-
-                    try {
-                        const response = await fetch(`/api/cleanup/${this.currentTask.taskId}`, {
-                            method: 'DELETE'
-                        });
-
-                        if (response.ok) {
-                            this.addLog('任务已清理: ' + this.currentTask.taskId);
-                            this.currentTask = null;
-                            if (this.eventSource) {
-                                this.eventSource.close();
-                            }
-                        } else {
-                            throw new Error('清理失败');
-                        }
-                    } catch (error) {
-                        this.addLog('清理错误: ' + error.message);
+                // 重置任务状态以开始新的转换
+                resetTask() {
+                    this.uiState = 'initial';
+                    this.currentTask = { files: [] };
+                    this.clearFile();
+                    this.eventLogs = [];
+                    if (this.eventSource) {
+                        this.eventSource.close();
+                        this.eventSource = null;
                     }
+                    this.isConverting = false;
+                    this.convertOptions.title = '';
+                    this.convertOptions.author = '';
                 },
 
                 // 添加日志
