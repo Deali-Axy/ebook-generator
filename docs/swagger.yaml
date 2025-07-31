@@ -1,0 +1,434 @@
+basePath: /api
+definitions:
+  models.APIResponse:
+    properties:
+      code:
+        description: 状态码
+        example: 200
+        type: integer
+      data:
+        description: 数据
+      error:
+        description: 错误信息
+        example: ""
+        type: string
+      message:
+        description: 消息
+        example: success
+        type: string
+    type: object
+  models.CleanupResponse:
+    properties:
+      cleaned:
+        description: 是否清理成功
+        example: true
+        type: boolean
+      cleaned_at:
+        description: 清理时间
+        example: "2024-01-01T00:10:00Z"
+        type: string
+      cleaned_files:
+        description: 已清理的文件列表
+        items:
+          type: string
+        type: array
+      message:
+        description: 消息
+        example: 清理完成
+        type: string
+      task_id:
+        description: 任务ID
+        example: task_123456789
+        type: string
+    type: object
+  models.ConvertRequest:
+    properties:
+      align:
+        description: 标题对齐方式
+        example: center
+        type: string
+      author:
+        description: 作者
+        example: 作者名
+        type: string
+      bookname:
+        description: 书名
+        example: 示例小说
+        type: string
+      bottom:
+        description: 段落间距
+        example: 1em
+        type: string
+      cover:
+        description: 封面设置
+        example: gen
+        type: string
+      cover_orly_color:
+        description: 封面颜色
+        example: '#FF6B6B'
+        type: string
+      cover_orly_idx:
+        description: 封面动物索引
+        example: 1
+        type: integer
+      exclusion_pattern:
+        description: 排除规则
+        example: ^第[0-9一二三四五六七八九十零〇百千两 ]+(部门|部队)
+        type: string
+      font:
+        description: 嵌入字体
+        example: ""
+        type: string
+      format:
+        description: 输出格式
+        enum:
+        - epub
+        - mobi
+        - azw3
+        - all
+        example: epub
+        type: string
+      indent:
+        description: 段落缩进
+        example: 2
+        type: integer
+      lang:
+        description: 语言设置
+        example: zh
+        type: string
+      line_height:
+        description: 行高
+        example: "1.5"
+        type: string
+      match:
+        description: 章节匹配规则
+        example: ^第[0-9一二三四五六七八九十零〇百千两 ]+[章回节集幕卷部]
+        type: string
+      max:
+        description: 标题最大字数
+        example: 35
+        type: integer
+      task_id:
+        description: 任务ID
+        example: task_123456789
+        type: string
+      tips:
+        description: 是否添加教程文本
+        example: true
+        type: boolean
+      unknow_title:
+        description: 未知章节名称
+        example: 章节正文
+        type: string
+      volume_match:
+        description: 卷匹配规则
+        example: ^第[0-9一二三四五六七八九十零〇百千两 ]+[卷部]
+        type: string
+    required:
+    - bookname
+    - format
+    - task_id
+    type: object
+  models.ConvertResponse:
+    properties:
+      message:
+        description: 消息
+        example: 转换任务已开始
+        type: string
+      started_at:
+        description: 开始时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      status:
+        description: 状态
+        example: processing
+        type: string
+      task_id:
+        description: 任务ID
+        example: task_123456789
+        type: string
+    type: object
+  models.ConvertedFile:
+    properties:
+      file_id:
+        description: 文件ID
+        example: file_123456789
+        type: string
+      filename:
+        description: 文件名
+        example: example.epub
+        type: string
+      format:
+        description: 格式
+        example: epub
+        type: string
+      path:
+        description: 文件路径(内部使用)
+        type: string
+      size:
+        description: 文件大小(字节)
+        example: 2048000
+        type: integer
+    type: object
+  models.TaskStatusResponse:
+    properties:
+      completed_at:
+        description: 完成时间
+        example: "2024-01-01T00:05:00Z"
+        type: string
+      error:
+        description: 错误信息
+        example: ""
+        type: string
+      files:
+        description: 转换后的文件列表
+        items:
+          $ref: '#/definitions/models.ConvertedFile'
+        type: array
+      logs:
+        description: 处理日志
+        items:
+          type: string
+        type: array
+      message:
+        description: 当前状态消息
+        example: 转换完成
+        type: string
+      metadata:
+        additionalProperties: true
+        description: 元数据
+        type: object
+      progress:
+        description: 进度百分比
+        example: 100
+        type: integer
+      started_at:
+        description: 开始时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      status:
+        description: 状态
+        example: completed
+        type: string
+      task_id:
+        description: 任务ID
+        example: task_123456789
+        type: string
+    type: object
+  models.UploadResponse:
+    properties:
+      filename:
+        description: 文件名
+        example: example.txt
+        type: string
+      size:
+        description: 文件大小(字节)
+        example: 1024000
+        type: integer
+      task_id:
+        description: 任务ID
+        example: task_123456789
+        type: string
+      upload_at:
+        description: 上传时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: 电子书转换服务API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Ebook Generator API
+  version: "1.0"
+paths:
+  /cleanup/{taskId}:
+    delete:
+      description: 清理任务相关的所有文件
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.CleanupResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 清理任务文件
+      tags:
+      - 任务管理
+  /convert:
+    post:
+      consumes:
+      - application/json
+      description: 开始将txt文件转换为电子书
+      parameters:
+      - description: 转换参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ConvertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConvertResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 开始电子书转换
+      tags:
+      - 转换管理
+  /download/{fileId}:
+    get:
+      description: 下载转换后的电子书文件
+      parameters:
+      - description: 文件ID
+        in: path
+        name: fileId
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 下载电子书文件
+      tags:
+      - 文件管理
+  /events/{taskId}:
+    get:
+      description: 通过SSE获取任务的实时事件流
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE事件流
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 获取任务事件流
+      tags:
+      - 转换管理
+  /status/{taskId}:
+    get:
+      description: 查询转换任务的当前状态
+      parameters:
+      - description: 任务ID
+        in: path
+        name: taskId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.TaskStatusResponse'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 查询转换状态
+      tags:
+      - 转换管理
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传txt文件用于转换
+      parameters:
+      - description: txt文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UploadResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 上传txt文件
+      tags:
+      - 文件管理
+swagger: "2.0"
