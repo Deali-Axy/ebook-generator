@@ -62,10 +62,15 @@ func main() {
 		api.GET("/events/:taskId", handlers.GetTaskEvents)
 	}
 
-	// Swagger文档
+	// 集成Swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// 健康检查
+	// 静态文件服务
+	r.Static("/static", "./web/static")
+	r.StaticFile("/", "./web/static/index.html")
+	r.StaticFile("/demo", "./web/static/index.html")
+
+	// 健康检查接口
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
