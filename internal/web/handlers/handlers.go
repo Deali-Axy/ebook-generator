@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -320,24 +320,38 @@ func GetTaskEvents(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
 
-	// 发送SSE事件
-	c.Stream(func(w io.Writer) bool {
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, models.APIResponse{
+			Code:    500,
+			Message: "Streaming not supported",
+		})
+		return
+	}
+
+	// 循环处理事件
+	for {
 		select {
 		case event, ok := <-eventChan:
 			if !ok {
 				// 通道已关闭
-				return false
+				return
 			}
-			// 发送事件
-			c.SSEvent("message", event)
-			return true
-		case <-c.Request.Context().Done():
-			// 客户端断开连接
-			return false
+			// 手动发送SSE事件
+			jsonData, err := json.Marshal(event)
+			if err != nil {
+				// 在实际应用中，这里应该记录日志
+				continue
+			}
+			fmt.Fprintf(c.Writer, "data: %s\n\n", string(jsonData))
+			flusher.Flush()
 		case <-time.After(30 * time.Second):
 			// 超时，发送心跳
-			c.SSEvent("ping", "heartbeat")
-			return true
+			fmt.Fprintf(c.Writer, "event: ping\ndata: heartbeat\n\n")
+			flusher.Flush()
+		case <-c.Request.Context().Done():
+			// 客户端断开连接
+			return
 		}
-	})
+	}
 }

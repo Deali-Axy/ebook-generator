@@ -131,6 +131,8 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 		if r := recover(); r != nil {
 			log.Printf("转换任务异常: %v", r)
 			s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, fmt.Sprintf("转换异常: %v", r), fmt.Sprintf("%v", r))
+			s.sendEvent(task.ID, models.EventTypeError, fmt.Sprintf("转换异常: %v", r), 0, nil)
+			s.closeEventChannel(task.ID)
 		}
 	}()
 
@@ -143,6 +145,7 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	if err != nil {
 		s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, "获取文件失败", err.Error())
 		s.sendEvent(task.ID, models.EventTypeError, "获取文件失败: "+err.Error(), 0, nil)
+		s.closeEventChannel(task.ID)
 		return
 	}
 
@@ -156,6 +159,7 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	if err := core.Check(book, "1.0.0"); err != nil {
 		s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, "文件验证失败", err.Error())
 		s.sendEvent(task.ID, models.EventTypeError, "文件验证失败: "+err.Error(), 0, nil)
+		s.closeEventChannel(task.ID)
 		return
 	}
 
@@ -166,6 +170,7 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	if err := core.Parse(book); err != nil {
 		s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, "文件解析失败", err.Error())
 		s.sendEvent(task.ID, models.EventTypeError, "文件解析失败: "+err.Error(), 0, nil)
+		s.closeEventChannel(task.ID)
 		return
 	}
 
@@ -177,6 +182,7 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	if err != nil {
 		s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, "转换失败", err.Error())
 		s.sendEvent(task.ID, models.EventTypeError, "转换失败: "+err.Error(), 0, nil)
+		s.closeEventChannel(task.ID)
 		return
 	}
 
@@ -188,6 +194,7 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	if err != nil {
 		s.updateTaskStatus(task.ID, models.TaskStatusFailed, 0, "保存文件失败", err.Error())
 		s.sendEvent(task.ID, models.EventTypeError, "保存文件失败: "+err.Error(), 0, nil)
+		s.closeEventChannel(task.ID)
 		return
 	}
 
@@ -207,6 +214,9 @@ func (s *TaskService) processConversion(task *TaskInfo) {
 	s.sendEvent(task.ID, models.EventTypeComplete, "转换完成", 100, map[string]interface{}{
 		"files": files,
 	})
+
+	// 发送完成事件后立即关闭事件通道
+	s.closeEventChannel(task.ID)
 }
 
 // createBookFromRequest 从请求创建Book对象
@@ -280,6 +290,18 @@ func (s *TaskService) sendEvent(taskID, eventType, message string, progress int,
 	default:
 		// 通道满了，丢弃事件
 		log.Printf("事件通道满了，丢弃事件: %s", taskID)
+	}
+}
+
+// closeEventChannel 关闭事件通道
+func (s *TaskService) closeEventChannel(taskID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if ch, exists := s.eventChannels[taskID]; exists {
+		close(ch)
+		delete(s.eventChannels, taskID)
+		log.Printf("已关闭任务 %s 的事件通道", taskID)
 	}
 }
 
