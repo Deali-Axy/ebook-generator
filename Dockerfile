@@ -1,5 +1,5 @@
 # 构建阶段
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -31,9 +31,8 @@ WORKDIR /app
 # 从构建阶段复制二进制文件
 COPY --from=builder /app/ebook-generator .
 
-# 复制静态文件和模板
+# 复制静态文件
 COPY --from=builder /app/web/static ./web/static
-COPY --from=builder /app/web/templates ./web/templates
 
 # 创建必要的目录
 RUN mkdir -p web/uploads web/outputs

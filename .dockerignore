@@ -26,7 +26,7 @@ samples/
 *.md
 README*
 docs/
-api-docs/
+# api-docs/ - needed for web build
 
 # Development tools
 .aider*
