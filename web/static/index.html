@@ -175,7 +175,7 @@
                                         <p class="text-sm text-gray-500" x-text="formatFileSize(file.size)"></p>
                                     </div>
                                 </div>
-                                <button @click="downloadFile(file.filename)" 
+                                <button @click="downloadFile(file.file_id)" 
                                         class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                                     下载
                                 </button>
@@ -355,10 +355,19 @@
                     this.eventSource.onmessage = (event) => {
                         try {
                             const data = JSON.parse(event.data);
-                            this.addLog(`事件: ${data.type} - ${data.message}`);
+                            this.addLog(`事件: ${data.event_type} - ${data.message}`);
                             
                             if (data.progress !== undefined) {
                                 this.currentTask.progress = data.progress;
+                            }
+                            
+                            // 处理任务完成或错误事件
+                            if (data.event_type === 'complete' || data.event_type === 'error') {
+                                this.isConverting = false;
+                                if (this.eventSource) {
+                                    this.eventSource.close();
+                                    this.eventSource = null;
+                                }
                             }
                         } catch (e) {
                             console.error('解析事件数据失败:', e);
@@ -404,9 +413,13 @@
                 },
 
                 // 下载文件
-                async downloadFile(filename) {
+                async downloadFile(fileId) {
                     try {
-                        const response = await fetch(`/api/download/${filename}`);
+                        // 从当前任务的文件列表中找到对应的文件名
+                        const file = this.currentTask?.files?.find(f => f.file_id === fileId);
+                        const filename = file ? file.filename : 'download';
+                        
+                        const response = await fetch(`/api/download/${fileId}`);
                         if (response.ok) {
                             const blob = await response.blob();
                             const url = window.URL.createObjectURL(blob);
