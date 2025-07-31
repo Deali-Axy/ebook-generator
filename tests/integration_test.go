@@ -52,7 +52,9 @@ func TestAPIIntegration(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
 		require.NoError(t, err)
 
-		token := loginResponse["access_token"].(string)
+		// 安全的类型转换
+		token, ok := loginResponse["access_token"].(string)
+		require.True(t, ok, "access_token should be a string")
 		assert.NotEmpty(t, token)
 
 		// 获取用户资料

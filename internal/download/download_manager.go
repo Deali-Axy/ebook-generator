@@ -2,8 +2,6 @@ package download
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"

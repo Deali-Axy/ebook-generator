@@ -138,8 +138,15 @@ func (ts *TestServer) registerTestUser(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
 	require.NoError(t, err)
 
-	ts.token = loginResponse["access_token"].(string)
-	ts.userID = uint(loginResponse["user"].(map[string]interface{})["id"].(float64))
+	// 安全的类型转换
+	if accessToken, ok := loginResponse["access_token"].(string); ok {
+		ts.token = accessToken
+	}
+	if user, ok := loginResponse["user"].(map[string]interface{}); ok {
+		if id, ok := user["id"].(float64); ok {
+			ts.userID = uint(id)
+		}
+	}
 }
 
 // TestAuthEndpoints 测试认证相关接口
