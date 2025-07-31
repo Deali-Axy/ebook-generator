@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ystyle/kaf-cli/internal/model"
-	"github.com/ystyle/kaf-cli/internal/utils"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/utils"
 )
 
 func Check(book *model.Book, version string) error {

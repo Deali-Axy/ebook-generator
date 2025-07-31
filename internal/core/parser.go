@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/ystyle/kaf-cli/internal/model"
-	"github.com/ystyle/kaf-cli/internal/utils"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/utils"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"

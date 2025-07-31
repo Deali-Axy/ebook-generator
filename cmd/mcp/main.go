@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/ystyle/kaf-cli/internal/mcp"
+	"github.com/Deali-Axy/ebook-generator/internal/mcp"
 )
 
 var version string = "1.0.0"

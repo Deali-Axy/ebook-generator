@@ -12,5 +12,5 @@ wasmtime run --mapdir /tmp::/tmp --mapdir /txt::.  ./kaf-cli.wasm -- -filename /
 
 ### 源码构建
 1. 需要提前安装[`go编译器`](https://go.dev)
-2. 下载：https://github.com/ystyle/kaf-cli
+2. 下载：https://github.com/Deali-Axy/ebook-generator
 3. 编译`wasm/wasi`版本: `OARCH=wasm GOOS=wasip1 go build -o kaf-cli.wasm cmd/cli.go`

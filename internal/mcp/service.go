@@ -8,9 +8,9 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/ystyle/kaf-cli/internal/converter"
-	"github.com/ystyle/kaf-cli/internal/core"
-	"github.com/ystyle/kaf-cli/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/converter"
+	"github.com/Deali-Axy/ebook-generator/internal/core"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
 )
 
 type ConverterService struct {
@@ -43,7 +43,7 @@ func (s *ConverterService) RegisterTools(srv *server.MCPServer, version string) 
 			[]mcp.PromptMessage{
 				mcp.NewPromptMessage(
 					mcp.RoleAssistant,
-					mcp.NewTextContent("https://github.com/ystyle/kaf-cli"),
+					mcp.NewTextContent("https://github.com/Deali-Axy/ebook-generator"),
 				),
 			},
 		), nil

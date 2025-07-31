@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ystyle/kaf-cli/internal/converter"
-	"github.com/ystyle/kaf-cli/internal/core"
-	"github.com/ystyle/kaf-cli/internal/model"
-	"github.com/ystyle/kaf-cli/pkg/analytics"
+	"github.com/Deali-Axy/ebook-generator/internal/converter"
+	"github.com/Deali-Axy/ebook-generator/internal/core"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
+	"github.com/Deali-Axy/ebook-generator/pkg/analytics"
 )
 
 var (

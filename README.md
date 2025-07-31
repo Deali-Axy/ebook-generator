@@ -24,8 +24,8 @@
 - 自动转为mobi格式
 
 ### 下载
-- 电脑版kaf-cli: [Github下载](https://github.com/ystyle/kaf-cli/releases/latest)
-- 手机版kaf: [Github下载](https://github.com/ystyle/kaf-cli/releases/tag/android)
+- 电脑版kaf-cli: [Github下载](https://github.com/Deali-Axy/ebook-generator/releases/latest)
+- 手机版kaf: [Github下载](https://github.com/Deali-Axy/ebook-generator/releases/tag/android)
 - 电脑版wifi传书kaf-wifi: [Github下载](https://github.com/ystyle/kaf-wifi/releases/latest)
 - 全部软件 [百度网盘下载 `https://pan.baidu.com/s/1EPkLJ7WIJYdYtRHBEMqw0w?pwd=h4np`](https://pan.baidu.com/s/1EPkLJ7WIJYdYtRHBEMqw0w?pwd=h4np)
 - 包管理器安装:
@@ -138,7 +138,7 @@ d:/kaf-cli.exe -filename d:/ebbok.txt -match "Chapter .{1,8}"
 
 ### MCP 版本使用说明
 >以cherry studio为例
-- 1. 点击下载[kaf-mcp](https://github.com/ystyle/kaf-cli/releases?q=mcp-), 并解压, 复制kaf-mcp的路径
+- 1. 点击下载[kaf-mcp](https://github.com/Deali-Axy/ebook-generator/releases?q=mcp-), 并解压, 复制kaf-mcp的路径
 - 2. 配置mcp
    - 命令这里填上面的kaf-mcp命令的路径
    - 在环境变量里添加`KAF_DIR=xxx`, xxx换成txt小说所在的目录，转换后的小说也会放这里
@@ -161,7 +161,7 @@ d:/kaf-cli.exe -filename d:/ebbok.txt -match "Chapter .{1,8}"
 ### 手动把书转为kindle的mobi格式
 >新版如果检测到有kindlegen程序时会自动转为mobi
 
-1. 下载[kindlegen](https://github.com/ystyle/kaf-cli/releases/kindlegen/) (github备份，官网已经不提供下载)
+1. 下载[kindlegen](https://github.com/Deali-Axy/ebook-generator/releases/kindlegen/) (github备份，官网已经不提供下载)
 2. 同样放到`d:`盘根目录下， 把epub拖拽到kindlegen.exe上面， 或执行以下命令转换
   ```shell
   cd d:/

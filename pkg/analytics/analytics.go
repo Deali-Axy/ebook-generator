@@ -9,7 +9,7 @@ import (
 	"time"
 
 	analytics "github.com/ystyle/google-analytics"
-	"github.com/ystyle/kaf-cli/internal/utils"
+	"github.com/Deali-Axy/ebook-generator/internal/utils"
 )
 
 func Analytics(version, secret, measurement, format string) {

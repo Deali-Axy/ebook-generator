@@ -22,8 +22,8 @@ jobs:
 
       - name: Get dependencies
         run: |
-          curl -OL https://github.com/ystyle/kaf-cli/releases/download/kindlegen/KindleGen_Mac_64bit_v2_9.zip
-          curl -OL https://github.com/ystyle/kaf-cli/releases/download/kindlegen/kindlegen_win32_v2_9.zip
+          curl -OL https://github.com/Deali-Axy/ebook-generator/releases/download/kindlegen/KindleGen_Mac_64bit_v2_9.zip
+        curl -OL https://github.com/Deali-Axy/ebook-generator/releases/download/kindlegen/kindlegen_win32_v2_9.zip
           unzip -d darwin KindleGen_Mac_64bit_v2_9.zip
           unzip -d windows kindlegen_win32_v2_9.zip
 

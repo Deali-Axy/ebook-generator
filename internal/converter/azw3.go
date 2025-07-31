@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/leotaku/mobi"
-	"github.com/ystyle/kaf-cli/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
 	"golang.org/x/text/language"
 )
 

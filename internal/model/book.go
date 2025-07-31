@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/ystyle/kaf-cli/internal/utils"
+	"github.com/Deali-Axy/ebook-generator/internal/utils"
 	"golang.org/x/text/encoding"
 )
 

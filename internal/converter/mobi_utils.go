@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ystyle/kaf-cli/internal/utils"
+	"github.com/Deali-Axy/ebook-generator/internal/utils"
 )
 
 func ConverToMobi(bookname, lang string) {

@@ -1,9 +1,9 @@
 package kafcli
 
 import (
-	"github.com/ystyle/kaf-cli/internal/converter"
-	"github.com/ystyle/kaf-cli/internal/core"
-	"github.com/ystyle/kaf-cli/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/converter"
+	"github.com/Deali-Axy/ebook-generator/internal/core"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
 )
 
 type Book = model.Book

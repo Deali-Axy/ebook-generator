@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/766b/mobi"
-	"github.com/ystyle/kaf-cli/internal/model"
+	"github.com/Deali-Axy/ebook-generator/internal/model"
 )
 
 type MobiConverter struct {
