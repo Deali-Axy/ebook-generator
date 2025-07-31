@@ -17,6 +17,85 @@ definitions:
         example: success
         type: string
     type: object
+  models.BatchConversionRequest:
+    properties:
+      author:
+        type: string
+      book_title:
+        type: string
+      common_options:
+        additionalProperties: true
+        type: object
+      files:
+        items:
+          $ref: '#/definitions/models.BatchFileInfo'
+        maxItems: 10
+        minItems: 1
+        type: array
+      output_format:
+        enum:
+        - epub
+        - mobi
+        - azw3
+        - pdf
+        type: string
+    required:
+    - files
+    - output_format
+    type: object
+  models.BatchConversionResponse:
+    properties:
+      batch_id:
+        type: string
+      created_at:
+        type: string
+      status:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/models.BatchTaskInfo'
+        type: array
+      total_files:
+        type: integer
+    type: object
+  models.BatchFileInfo:
+    properties:
+      custom_options:
+        additionalProperties: true
+        type: object
+      file_hash:
+        type: string
+      file_name:
+        type: string
+      file_size:
+        minimum: 1
+        type: integer
+    required:
+    - file_name
+    - file_size
+    type: object
+  models.BatchTaskInfo:
+    properties:
+      error_message:
+        type: string
+      file_name:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+    type: object
+  models.ChangePasswordRequest:
+    properties:
+      new_password:
+        minLength: 6
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   models.CleanupResponse:
     properties:
       cleaned:
@@ -40,6 +119,86 @@ definitions:
         description: 任务ID
         example: task_123456789
         type: string
+    type: object
+  models.ConversionHistory:
+    properties:
+      convert_options:
+        $ref: '#/definitions/models.ConvertOptionsJSON'
+      created_at:
+        type: string
+      download_count:
+        type: integer
+      duration:
+        description: 转换耗时（毫秒）
+        type: integer
+      end_time:
+        type: string
+      error_message:
+        type: string
+      id:
+        type: integer
+      is_deleted:
+        type: boolean
+      last_download_at:
+        type: string
+      original_file_hash:
+        type: string
+      original_file_name:
+        type: string
+      original_file_size:
+        type: integer
+      output_file_name:
+        type: string
+      output_file_size:
+        type: integer
+      output_format:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      task_id:
+        type: string
+      updated_at:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: 关联
+      user_id:
+        type: integer
+    type: object
+  models.ConversionPreset:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_default:
+        type: boolean
+      is_public:
+        type: boolean
+      name:
+        type: string
+      options:
+        $ref: '#/definitions/models.ConvertOptionsJSON'
+      output_format:
+        type: string
+      updated_at:
+        type: string
+      usage_count:
+        type: integer
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: 关联
+      user_id:
+        type: integer
+    type: object
+  models.ConvertOptionsJSON:
+    additionalProperties: true
     type: object
   models.ConvertRequest:
     properties:
@@ -170,6 +329,155 @@ definitions:
         example: 2048000
         type: integer
     type: object
+  models.HistoryListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.ConversionHistory'
+        type: array
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  models.HistoryStatsResponse:
+    properties:
+      average_duration:
+        type: number
+      failed_conversions:
+        type: integer
+      format_stats:
+        additionalProperties:
+          format: int64
+          type: integer
+        type: object
+      monthly_stats:
+        items:
+          $ref: '#/definitions/models.MonthlyStats'
+        type: array
+      recent_activity:
+        items:
+          $ref: '#/definitions/models.ConversionHistory'
+        type: array
+      success_rate:
+        type: number
+      successful_conversions:
+        type: integer
+      total_conversions:
+        type: integer
+      total_file_size:
+        type: integer
+    type: object
+  models.LoginRequest:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.LoginResponse:
+    properties:
+      expires_at:
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.MonthlyStats:
+    properties:
+      count:
+        type: integer
+      failure_count:
+        type: integer
+      month:
+        type: string
+      success_count:
+        type: integer
+      year:
+        type: integer
+    type: object
+  models.PresetCreateRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      is_default:
+        type: boolean
+      is_public:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      options:
+        additionalProperties: true
+        type: object
+      output_format:
+        enum:
+        - epub
+        - mobi
+        - azw3
+        - pdf
+        type: string
+    required:
+    - name
+    - output_format
+    type: object
+  models.PresetUpdateRequest:
+    properties:
+      description:
+        maxLength: 500
+        type: string
+      is_default:
+        type: boolean
+      is_public:
+        type: boolean
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      options:
+        additionalProperties: true
+        type: object
+      output_format:
+        enum:
+        - epub
+        - mobi
+        - azw3
+        - pdf
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        minLength: 6
+        type: string
+      username:
+        example: newuser
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   models.TaskStatusResponse:
     properties:
       completed_at:
@@ -234,6 +542,42 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
     type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_login:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserProfile:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_login:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -248,6 +592,136 @@ info:
   title: Ebook Generator API
   version: "1.0"
 paths:
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: 修改当前用户的密码
+      parameters:
+      - description: 密码修改信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 修改密码
+      tags:
+      - 用户认证
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录获取访问令牌
+      parameters:
+      - description: 登录信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 用户登录
+      tags:
+      - 用户认证
+  /auth/profile:
+    get:
+      description: 获取当前登录用户的资料信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserProfile'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取用户资料
+      tags:
+      - 用户认证
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 注册新用户账户
+      parameters:
+      - description: 注册信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserProfile'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: 用户注册
+      tags:
+      - 用户认证
   /cleanup/{taskId}:
     delete:
       description: 清理任务相关的所有文件
@@ -315,6 +789,47 @@ paths:
       summary: 开始电子书转换
       tags:
       - 转换管理
+  /convert/batch:
+    post:
+      consumes:
+      - application/json
+      description: 批量转换多个文件
+      parameters:
+      - description: 批量转换请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BatchConversionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.BatchConversionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 批量转换
+      tags:
+      - 批量转换
   /download/{fileId}:
     get:
       description: 下载转换后的电子书文件
@@ -365,6 +880,322 @@ paths:
       summary: 获取任务事件流
       tags:
       - 转换管理
+  /history:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的转换历史记录列表
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 状态过滤
+        in: query
+        name: status
+        type: string
+      - description: 格式过滤
+        in: query
+        name: format
+        type: string
+      - description: 开始日期
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        in: query
+        name: end_date
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      - default: created_at
+        description: 排序字段
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: 排序方向
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.HistoryListResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取转换历史列表
+      tags:
+      - 转换历史
+  /history/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的转换历史记录
+      parameters:
+      - description: 历史记录ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除转换历史
+      tags:
+      - 转换历史
+  /history/stats:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的转换统计信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.HistoryStatsResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取转换统计信息
+      tags:
+      - 转换历史
+  /presets:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前用户的转换预设列表
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 格式过滤
+        in: query
+        name: format
+        type: string
+      - description: 关键词搜索
+        in: query
+        name: keyword
+        type: string
+      - description: 是否公开
+        in: query
+        name: is_public
+        type: boolean
+      - default: created_at
+        description: 排序字段
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: 排序方向
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.ConversionPreset'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取转换预设列表
+      tags:
+      - 转换预设
+    post:
+      consumes:
+      - application/json
+      description: 创建新的转换预设配置
+      parameters:
+      - description: 预设信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PresetCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ConversionPreset'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建转换预设
+      tags:
+      - 转换预设
+  /presets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的转换预设
+      parameters:
+      - description: 预设ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除转换预设
+      tags:
+      - 转换预设
+    put:
+      consumes:
+      - application/json
+      description: 更新指定的转换预设配置
+      parameters:
+      - description: 预设ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 预设信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PresetUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新转换预设
+      tags:
+      - 转换预设
   /status/{taskId}:
     get:
       description: 查询转换任务的当前状态

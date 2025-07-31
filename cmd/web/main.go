@@ -54,12 +54,50 @@ func main() {
 	// API路由组
 	api := r.Group("/api")
 	{
+		// 基础转换功能
 		api.POST("/upload", handlers.UploadFile)
 		api.POST("/convert", handlers.ConvertBook)
 		api.GET("/status/:taskId", handlers.GetTaskStatus)
 		api.GET("/download/:fileId", handlers.DownloadFile)
 		api.DELETE("/cleanup/:taskId", handlers.CleanupTask)
 		api.GET("/events/:taskId", handlers.GetTaskEvents)
+
+		// 用户认证相关路由
+		auth := api.Group("/auth")
+		{
+			auth.POST("/register", handlers.Register)
+			auth.POST("/login", handlers.Login)
+			auth.GET("/profile", handlers.AuthMiddleware(), handlers.GetProfile)
+			auth.PUT("/profile", handlers.AuthMiddleware(), handlers.UpdateProfile)
+			auth.POST("/logout", handlers.AuthMiddleware(), handlers.Logout)
+			auth.POST("/refresh", handlers.AuthMiddleware(), handlers.RefreshToken)
+		}
+
+		// 转换历史相关路由（需要认证）
+		history := api.Group("/history")
+		history.Use(handlers.AuthMiddleware())
+		{
+			history.GET("", handlers.GetHistories)
+			history.GET("/stats", handlers.GetHistoryStats)
+			history.DELETE("/:id", handlers.DeleteHistory)
+		}
+
+		// 转换预设相关路由（需要认证）
+		presets := api.Group("/presets")
+		presets.Use(handlers.AuthMiddleware())
+		{
+			presets.POST("", handlers.CreatePreset)
+			presets.GET("", handlers.GetPresets)
+			presets.PUT("/:id", handlers.UpdatePreset)
+			presets.DELETE("/:id", handlers.DeletePreset)
+		}
+
+		// 批量转换相关路由（需要认证）
+		batch := api.Group("/batch")
+		batch.Use(handlers.AuthMiddleware())
+		{
+			batch.POST("/convert", handlers.BatchConvert)
+		}
 	}
 
 	// 集成Swagger文档

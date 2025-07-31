@@ -127,6 +127,76 @@ func RateLimiter(maxRequests int, duration time.Duration) gin.HandlerFunc {
 	}
 }
 
+// JWTAuth JWT认证中间件
+func JWTAuth(authService interface{}) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 从请求头获取token
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    401,
+				"message": "缺少认证token",
+				"error":   "Authorization header required",
+			})
+			c.Abort()
+			return
+		}
+
+		// 检查Bearer前缀
+		tokenString := ""
+		if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			tokenString = authHeader[7:]
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    401,
+				"message": "无效的认证格式",
+				"error":   "Invalid authorization format",
+			})
+			c.Abort()
+			return
+		}
+
+		// 这里需要类型断言，实际使用时需要传入正确的AuthService
+		// 由于Go的类型系统限制，这里使用interface{}，在实际使用时需要进行类型转换
+		// 验证token的逻辑需要在具体的handler中实现
+		c.Set("token", tokenString)
+		c.Next()
+	}
+}
+
+// RequireRole 角色权限中间件
+func RequireRole(roles ...string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 从上下文获取用户角色
+		userRole, exists := c.Get("user_role")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    401,
+				"message": "用户未认证",
+				"error":   "User not authenticated",
+			})
+			c.Abort()
+			return
+		}
+
+		// 检查角色权限
+		role := userRole.(string)
+		for _, requiredRole := range roles {
+			if role == requiredRole {
+				c.Next()
+				return
+			}
+		}
+
+		c.JSON(http.StatusForbidden, gin.H{
+			"code":    403,
+			"message": "权限不足",
+			"error":   "Insufficient permissions",
+		})
+		c.Abort()
+	}
+}
+
 // generateRequestID 生成请求ID
 func generateRequestID() string {
 	return fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(10000))
