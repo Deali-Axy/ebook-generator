@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 
+	"github.com/Deali-Axy/ebook-generator/internal/database"
 	"github.com/Deali-Axy/ebook-generator/internal/web/handlers"
 	"github.com/Deali-Axy/ebook-generator/internal/web/models"
 	"github.com/Deali-Axy/ebook-generator/internal/web/services"
@@ -42,8 +43,8 @@ func setupTestServer(t *testing.T) *TestServer {
 	}), &gorm.Config{})
 	require.NoError(t, err)
 
-	// 自动迁移数据库表
-	err = db.AutoMigrate(&models.User{}, &models.ConversionHistory{}, &models.ConversionPreset{})
+	// 使用统一的数据库迁移函数
+	err = database.AutoMigrate(db)
 	require.NoError(t, err)
 
 	// 创建服务

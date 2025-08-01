@@ -7,9 +7,12 @@ import (
 
 // AutoMigrate 自动迁移数据库表结构
 func AutoMigrate(db *gorm.DB) error {
-	// 自动迁移用户表
+	// 自动迁移所有数据表
 	err := db.AutoMigrate(
 		&models.User{},
+		&models.ConversionHistory{},
+		&models.ConversionPreset{},
+		&models.DownloadRecord{},
 	)
 	if err != nil {
 		return err
