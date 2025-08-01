@@ -3,13 +3,17 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	_ "github.com/Deali-Axy/ebook-generator/api-docs" // 导入生成的Swagger文档
+	"github.com/Deali-Axy/ebook-generator/internal/services"
 	"github.com/Deali-Axy/ebook-generator/internal/storage"
 	"github.com/Deali-Axy/ebook-generator/internal/web/handlers"
 	"github.com/Deali-Axy/ebook-generator/internal/web/middleware"
-	"github.com/Deali-Axy/ebook-generator/internal/web/services"
+	webServices "github.com/Deali-Axy/ebook-generator/internal/web/services"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -37,8 +41,26 @@ func main() {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	// 初始化服务
-	initServices()
+	// 初始化服务管理器
+	serviceManager, err := initServiceManager()
+	if err != nil {
+		log.Fatal("初始化服务管理器失败:", err)
+	}
+
+	// 启动所有服务
+	if err := serviceManager.Start(); err != nil {
+		log.Fatal("启动服务失败:", err)
+	}
+
+	// 设置优雅关闭
+	defer func() {
+		if err := serviceManager.Stop(); err != nil {
+			log.Printf("停止服务时出错: %v", err)
+		}
+	}()
+
+	// 初始化Web服务相关组件
+	initWebServices(serviceManager)
 
 	// 创建Gin引擎
 	r := gin.Default()
@@ -127,8 +149,29 @@ func main() {
 	}
 }
 
-// initServices 初始化服务
-func initServices() {
+// initServiceManager 初始化服务管理器
+// 创建并配置服务管理器，加载配置文件
+func initServiceManager() (*services.ServiceManager, error) {
+	// 检查配置文件是否存在
+	configPath := "config/services.json"
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		// 如果不存在，使用示例配置文件
+		configPath = "config/services.example.json"
+		log.Printf("使用示例配置文件: %s", configPath)
+	}
+
+	// 创建服务管理器
+	serviceManager, err := services.NewServiceManager(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return serviceManager, nil
+}
+
+// initWebServices 初始化Web服务相关组件
+// 使用服务管理器中的服务来初始化Web处理器
+func initWebServices(serviceManager *services.ServiceManager) {
 	// 获取工作目录
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -139,19 +182,48 @@ func initServices() {
 	uploadDir := filepath.Join(workDir, "web", "uploads")
 	outputDir := filepath.Join(workDir, "web", "outputs")
 
-	// 创建存储服务
+	// 创建存储服务（用于Web处理器）
 	storageService := storage.NewStorageService(uploadDir, outputDir, 50<<20) // 50MB限制
 
-	// 创建转换器服务
-	converterService := services.NewConverterService(outputDir)
+	// 创建转换器服务（用于Web处理器）
+	converterService := webServices.NewConverterService(outputDir)
 
-	// 创建任务服务
-	taskService := services.NewTaskService(storageService, converterService)
+	// 创建任务服务（用于Web处理器）
+	taskService := webServices.NewTaskService(storageService, converterService)
 
-	// 初始化处理器
+	// 初始化基础处理器
 	handlers.InitServices(taskService, storageService, converterService)
 
-	log.Println("服务初始化完成")
+	// 如果服务管理器中有数据库服务，初始化需要数据库的处理器
+	if serviceManager.DB != nil {
+		// 创建认证服务
+		authService := webServices.NewAuthService(serviceManager.DB, "ebook-generator-secret", 24*time.Hour) // 24小时过期
+		handlers.InitAuthService(authService)
+
+		// 初始化历史服务
+		if serviceManager.HistorySvc != nil {
+			handlers.InitHistoryService(serviceManager.HistorySvc)
+		} else {
+			// 如果服务管理器中没有历史服务，手动创建一个
+			historyService := webServices.NewHistoryService(serviceManager.DB)
+			handlers.InitHistoryService(historyService)
+		}
+
+		log.Println("数据库相关服务初始化完成")
+	} else {
+		log.Println("警告: 数据库未初始化，认证和历史功能将不可用")
+	}
+
+	log.Println("Web服务初始化完成")
 	log.Printf("上传目录: %s", uploadDir)
 	log.Printf("输出目录: %s", outputDir)
+
+	// 设置信号处理，用于优雅关闭
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		<-c
+		log.Println("收到关闭信号，正在优雅关闭服务...")
+		os.Exit(0)
+	}()
 }

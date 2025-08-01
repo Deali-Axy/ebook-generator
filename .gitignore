@@ -11,4 +11,5 @@ samples
 kaf-mcp
 main
 web/outputs
-temp
+temp/
+logs/

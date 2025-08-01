@@ -19,7 +19,7 @@ import (
 	"github.com/Deali-Axy/ebook-generator/internal/validation"
 	"github.com/Deali-Axy/ebook-generator/internal/web/middleware"
 	"github.com/Deali-Axy/ebook-generator/internal/web/services"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	gorm "gorm.io/gorm"
 )
 

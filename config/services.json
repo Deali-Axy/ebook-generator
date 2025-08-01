@@ -1,0 +1,314 @@
+{
+  "services": {
+    "database": {
+      "dsn": "file:ebook_generator.db?cache=shared&mode=rwc",
+      "max_open_conns": 25,
+      "max_idle_conns": 5,
+      "conn_max_lifetime": "5m",
+      "auto_migrate": true
+    },
+    "logging": {
+      "level": "info",
+      "format": "json",
+      "output": ["console", "file"],
+      "file_path": "logs/app.log",
+      "max_size": 100,
+      "max_backups": 10,
+      "max_age": 30,
+      "compress": true,
+      "buffer_size": 1000,
+      "flush_interval": "5s",
+      "enable_caller": true,
+      "enable_stacktrace": false
+    },
+    "health": {
+      "check_interval": "30s",
+      "timeout": "5s",
+      "endpoint": "/health",
+      "detailed_response": true
+    },
+    "metrics": {
+      "enabled": true,
+      "collect_interval": "15s",
+      "retention_period": "24h",
+      "endpoint": "/metrics",
+      "enable_prometheus": true,
+      "enable_alerts": true,
+      "alert_thresholds": {
+        "cpu_usage": 80.0,
+        "memory_usage": 85.0,
+        "disk_usage": 90.0,
+        "error_rate": 5.0,
+        "response_time": "1s"
+      }
+    },
+    "cache": {
+      "max_size": 1000,
+      "ttl": "1h",
+      "cleanup_interval": "10m",
+      "cache_dir": "cache",
+      "enable_compression": true,
+      "compression_threshold": 1024,
+      "eviction_policy": "lru",
+      "enable_metrics": true
+    },
+    "cleanup": {
+      "enabled": true,
+      "interval": "1h",
+      "max_age": "24h",
+      "max_size": 10737418240,
+      "directories": ["uploads", "downloads", "temp", "cache"],
+      "file_patterns": ["*.tmp", "*.temp", "*.log.old"],
+      "preserve_recent": 10,
+      "enable_compression": true,
+      "compression_age": "7d"
+    },
+    "upload": {
+      "chunk_size": 1048576,
+      "max_file_size": 104857600,
+      "max_concurrency": 3,
+      "session_timeout": "30m",
+      "cleanup_interval": "1h",
+      "temp_dir": "temp/uploads",
+      "allowed_types": [".txt", ".md", ".html", ".epub", ".mobi", ".azw3", ".pdf"],
+      "checksum_type": "md5",
+      "enable_resume": true,
+      "max_sessions": 100
+    },
+    "download": {
+      "max_concurrent": 3,
+      "chunk_size": 1048576,
+      "max_retries": 3,
+      "retry_delay": "5s",
+      "timeout": "30s",
+      "download_dir": "downloads",
+      "temp_dir": "temp/downloads",
+      "max_file_size": 1073741824,
+      "cleanup_interval": "1h",
+      "keep_completed": "24h",
+      "user_agent": "EbookGenerator/1.0",
+      "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate"
+      }
+    },
+    "validation": {
+      "max_file_size": 104857600,
+      "allowed_types": [".txt", ".md", ".html", ".epub", ".mobi", ".azw3", ".pdf"],
+      "check_content": true,
+      "check_encoding": true,
+      "strict_mode": false,
+      "scan_depth": 10,
+      "enable_virus_scan": false,
+      "custom_validators": []
+    },
+    "rate_limit": {
+      "enabled": true,
+      "global_rate": 100,
+      "global_burst": 200,
+      "per_ip_rate": 10,
+      "per_ip_burst": 20,
+      "per_user_rate": 50,
+      "per_user_burst": 100,
+      "per_api_key_rate": 1000,
+      "per_api_key_burst": 2000,
+      "window_size": "1m",
+      "cleanup_interval": "5m",
+      "enable_distributed": false,
+      "redis_url": "",
+      "whitelist_ips": ["127.0.0.1", "::1"],
+      "blacklist_ips": [],
+      "custom_headers": {
+        "X-RateLimit-Limit": true,
+        "X-RateLimit-Remaining": true,
+        "X-RateLimit-Reset": true
+      }
+    },
+    "load_balancer": {
+      "algorithm": "round_robin",
+      "health_check_interval": "30s",
+      "health_check_timeout": "5s",
+      "health_check_path": "/health",
+      "max_retries": 3,
+      "retry_delay": "1s",
+      "session_sticky": false,
+      "session_timeout": "30m",
+      "circuit_breaker": {
+        "enabled": true,
+        "failure_threshold": 5,
+        "success_threshold": 3,
+        "timeout": "60s",
+        "half_open_requests": 3
+      },
+      "metrics": true,
+      "logging": true,
+      "backends": [
+        {
+          "url": "http://localhost:8080",
+          "weight": 1,
+          "metadata": {
+            "region": "local",
+            "version": "1.0.0"
+          }
+        }
+      ]
+    },
+    "config_manager": {
+      "config_file": "config/services.json",
+      "watch_changes": true,
+      "format": "json",
+      "reload_signal": "SIGHUP",
+      "backup_count": 5,
+      "validation_schema": "config/schema.json"
+    }
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "read_timeout": "30s",
+    "write_timeout": "30s",
+    "idle_timeout": "120s",
+    "max_header_bytes": 1048576,
+    "enable_tls": false,
+    "tls_cert_file": "",
+    "tls_key_file": "",
+    "enable_http2": true,
+    "enable_compression": true
+  },
+  "security": {
+    "jwt_secret": "your-super-secret-jwt-key-change-this-in-production",
+    "jwt_expiry": "24h",
+    "bcrypt_cost": 12,
+    "session_secret": "your-session-secret-change-this-in-production",
+    "csrf_protection": true,
+    "cors": {
+      "allowed_origins": ["http://localhost:3000", "http://localhost:8080"],
+      "allowed_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allowed_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+      "allow_credentials": true,
+      "max_age": 86400
+    },
+    "api_keys": {
+      "enabled": true,
+      "header_name": "X-API-Key",
+      "default_rate_limit": 1000,
+      "require_for_upload": false
+    }
+  },
+  "features": {
+    "user_registration": true,
+    "email_verification": false,
+    "password_reset": true,
+    "social_login": false,
+    "file_sharing": true,
+    "batch_conversion": true,
+    "conversion_presets": true,
+    "download_history": true,
+    "api_access": true,
+    "admin_panel": true
+  },
+  "conversion": {
+    "max_concurrent_jobs": 5,
+    "job_timeout": "10m",
+    "temp_dir": "temp/conversion",
+    "output_dir": "output",
+    "supported_formats": {
+      "input": ["txt", "md", "html", "epub", "mobi", "azw3"],
+      "output": ["epub", "mobi", "azw3", "pdf", "txt", "html"]
+    },
+    "quality_settings": {
+      "image_quality": 85,
+      "compression_level": 6,
+      "font_embedding": true,
+      "optimize_images": true
+    },
+    "pandoc": {
+      "path": "pandoc",
+      "timeout": "5m",
+      "memory_limit": "512MB",
+      "additional_args": []
+    },
+    "calibre": {
+      "path": "ebook-convert",
+      "timeout": "10m",
+      "memory_limit": "1GB",
+      "additional_args": []
+    }
+  },
+  "storage": {
+    "provider": "local",
+    "local": {
+      "base_path": "storage",
+      "permissions": "0755"
+    },
+    "s3": {
+      "bucket": "",
+      "region": "",
+      "access_key": "",
+      "secret_key": "",
+      "endpoint": "",
+      "use_ssl": true
+    },
+    "azure": {
+      "account_name": "",
+      "account_key": "",
+      "container_name": ""
+    },
+    "gcs": {
+      "bucket": "",
+      "credentials_file": "",
+      "project_id": ""
+    }
+  },
+  "email": {
+    "provider": "smtp",
+    "smtp": {
+      "host": "localhost",
+      "port": 587,
+      "username": "",
+      "password": "",
+      "use_tls": true,
+      "from_address": "noreply@example.com",
+      "from_name": "Ebook Generator"
+    },
+    "sendgrid": {
+      "api_key": "",
+      "from_address": "noreply@example.com",
+      "from_name": "Ebook Generator"
+    },
+    "templates": {
+      "welcome": "templates/email/welcome.html",
+      "password_reset": "templates/email/password_reset.html",
+      "email_verification": "templates/email/email_verification.html"
+    }
+  },
+  "monitoring": {
+    "sentry": {
+      "enabled": false,
+      "dsn": "",
+      "environment": "development",
+      "sample_rate": 1.0
+    },
+    "prometheus": {
+      "enabled": true,
+      "endpoint": "/metrics",
+      "namespace": "ebook_generator",
+      "subsystem": ""
+    },
+    "jaeger": {
+      "enabled": false,
+      "endpoint": "http://localhost:14268/api/traces",
+      "service_name": "ebook-generator",
+      "sample_rate": 0.1
+    }
+  },
+  "development": {
+    "debug": true,
+    "hot_reload": true,
+    "profiling": true,
+    "mock_external_services": false,
+    "seed_data": true,
+    "enable_swagger": true,
+    "swagger_endpoint": "/swagger"
+  }
+}
