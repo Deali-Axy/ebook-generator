@@ -3,7 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>电子书转换服务 - Demo</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>电子书转换服务 - 在线电子书格式转换工具 | 程序设计实验室</title>
+    <meta name="description" content="专业的在线电子书转换服务，支持TXT、MD、HTML、EPUB、MOBI、AZW3等多种格式互转。快速、安全、免费的电子书格式转换工具。">
+    <meta name="keywords" content="电子书转换,EPUB转换,MOBI转换,AZW3转换,在线转换,电子书格式,程序设计实验室">
+    <meta name="author" content="程序设计实验室">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="zh-CN">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="电子书转换服务 - 在线电子书格式转换工具">
+    <meta property="og:description" content="专业的在线电子书转换服务，支持多种格式互转，快速、安全、免费。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deali.cn">
+    <meta property="og:site_name" content="程序设计实验室">
+    <meta property="og:locale" content="zh_CN">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="电子书转换服务 - 在线电子书格式转换工具">
+    <meta name="twitter:description" content="专业的在线电子书转换服务，支持多种格式互转，快速、安全、免费。">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://deali.cn">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "电子书转换服务",
+        "description": "专业的在线电子书转换服务，支持TXT、MD、HTML、EPUB、MOBI、AZW3等多种格式互转",
+        "url": "https://deali.cn",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CNY"
+        },
+        "creator": {
+            "@type": "Organization",
+            "name": "程序设计实验室",
+            "url": "https://deali.cn"
+        }
+    }
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -12,11 +62,32 @@
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
     <div class="container mx-auto px-4 py-8" x-data="ebookConverter()" x-cloak>
+        <!-- 面包屑导航 -->
+        <nav class="mb-4" aria-label="面包屑导航">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li>
+                    <a href="https://deali.cn" class="hover:text-blue-600 transition-colors">程序设计实验室</a>
+                </li>
+                <li>
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </li>
+                <li class="text-gray-900 font-medium" aria-current="page">电子书转换服务</li>
+            </ol>
+        </nav>
+
         <!-- 页面标题 -->
-        <div class="text-center mb-8">
+        <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">电子书转换服务</h1>
-            <p class="text-gray-600">支持多种格式转换的在线电子书处理工具</p>
-        </div>
+            <p class="text-lg text-gray-600 mb-4">支持多种格式转换的在线电子书处理工具</p>
+            <div class="flex flex-wrap justify-center gap-2 text-sm">
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">✓ 免费使用</span>
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">✓ 快速转换</span>
+                <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">✓ 安全可靠</span>
+                <span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full">✓ 多格式支持</span>
+            </div>
+        </header>
 
         <!-- 主要内容区域 -->
         <div class="flex flex-col lg:flex-row gap-8 items-start">
@@ -215,6 +286,52 @@
             </div>
         </div>
     </div>
+
+    <!-- 页面底部信息 -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">电子书转换服务</h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">v1.0</span>
+                    </div>
+                    <p class="text-sm text-gray-600">专业的在线电子书格式转换工具</p>
+                </div>
+                
+                <div class="text-center md:text-right">
+                    <div class="mb-2">
+                        <span class="text-sm text-gray-600">开发者：</span>
+                        <a href="https://deali.cn" target="_blank" rel="noopener noreferrer" 
+                           class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                            程序设计实验室
+                        </a>
+                    </div>
+                    <div class="flex items-center justify-center md:justify-end space-x-4 text-sm text-gray-500">
+                        <a href="https://deali.cn" target="_blank" rel="noopener noreferrer" 
+                           class="hover:text-gray-700 transition-colors">官方网站</a>
+                        <span>|</span>
+                        <span>© 2024 程序设计实验室</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 技术栈信息 -->
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 mb-2">支持的格式</p>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">TXT</span>
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">Markdown</span>
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">HTML</span>
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">EPUB</span>
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">MOBI</span>
+                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">AZW3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
         function ebookConverter() {
