@@ -88,6 +88,7 @@ func setupTestServer(t *testing.T) *TestServer {
 	{
 		presets.POST("", handlers.CreatePreset)
 		presets.GET("", handlers.GetPresets)
+		presets.GET("/:id", handlers.GetPreset)
 		presets.PUT("/:id", handlers.UpdatePreset)
 		presets.DELETE("/:id", handlers.DeletePreset)
 	}

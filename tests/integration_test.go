@@ -32,7 +32,7 @@ func TestAPIIntegration(t *testing.T) {
 
 		w := httptest.NewRecorder()
         ts.router.ServeHTTP(w, req)
-        assert.Equal(t, http.StatusNotFound, w.Code)
+        assert.Equal(t, http.StatusOK, w.Code)
 
 		// 登录获取token
 		loginData := map[string]interface{}{
@@ -108,7 +108,7 @@ func TestAPIIntegration(t *testing.T) {
         if w.Code != http.StatusOK {
             t.Logf("获取预设列表失败，状态码: %d, 响应: %s", w.Code, w.Body.String())
         }
-        assert.Equal(t, http.StatusNotFound, w.Code)
+        assert.Equal(t, http.StatusOK, w.Code)
 
 		var response map[string]interface{}
         err = json.Unmarshal(w.Body.Bytes(), &response)
@@ -125,7 +125,7 @@ func TestAPIIntegration(t *testing.T) {
 
         w = httptest.NewRecorder()
         ts.router.ServeHTTP(w, req)
-        assert.Equal(t, http.StatusNotFound, w.Code)
+        assert.Equal(t, http.StatusOK, w.Code)
 
         var historyResponse map[string]interface{}
         err = json.Unmarshal(w.Body.Bytes(), &historyResponse)
@@ -188,7 +188,7 @@ func TestErrorHandling(t *testing.T) {
 
 		w := httptest.NewRecorder()
         ts.router.ServeHTTP(w, req)
-        assert.Equal(t, http.StatusNotFound, w.Code)
+        assert.Equal(t, http.StatusOK, w.Code)
 
 		// 第二次注册相同邮箱
 		registerData["username"] = "user2"
@@ -198,7 +198,7 @@ func TestErrorHandling(t *testing.T) {
 
 		w = httptest.NewRecorder()
 		ts.router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("错误的登录凭据", func(t *testing.T) {
@@ -229,10 +229,12 @@ func TestErrorHandling(t *testing.T) {
 
 		w = httptest.NewRecorder()
 		ts.router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusNotFound, w.Code)
+        assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("访问不存在的预设", func(t *testing.T) {
+		// 创建新的测试服务器实例以避免用户冲突
+		ts := setupTestServer(t)
 		ts.registerTestUser(t)
 
 		req := httptest.NewRequest("GET", "/api/presets/999", nil)
@@ -240,10 +242,12 @@ func TestErrorHandling(t *testing.T) {
 
 		w := httptest.NewRecorder()
         ts.router.ServeHTTP(w, req)
-        assert.Equal(t, http.StatusBadRequest, w.Code)
+        assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("删除不存在的历史记录", func(t *testing.T) {
+		// 创建新的测试服务器实例以避免用户冲突
+		ts := setupTestServer(t)
 		ts.registerTestUser(t)
 
 		req := httptest.NewRequest("DELETE", "/api/history/999", nil)
@@ -251,7 +255,7 @@ func TestErrorHandling(t *testing.T) {
 
 		w := httptest.NewRecorder()
         ts.router.ServeHTTP(w, req)
-        assert.Equal(t, http.StatusBadRequest, w.Code)
+        assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 }
 

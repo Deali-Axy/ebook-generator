@@ -265,7 +265,13 @@ func (hs *HistoryService) getMonthlyStats(userID uint, months int) ([]models.Mon
 // DeleteHistory 删除历史记录（软删除）
 func (hs *HistoryService) DeleteHistory(userID uint, historyID uint) error {
 	result := hs.db.Model(&models.ConversionHistory{}).Where("id = ? AND user_id = ?", historyID, userID).Update("is_deleted", true)
-	return result.Error
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 // RecordDownload 记录下载
@@ -356,6 +362,16 @@ func (hs *HistoryService) GetUserPresets(userID uint, req *models.PresetListRequ
 	var presets []models.ConversionPreset
 	result := query.Order(orderClause).Offset(offset).Limit(req.PageSize).Find(&presets)
 	return presets, result.Error
+}
+
+// GetPreset 获取单个预设
+func (hs *HistoryService) GetPreset(userID uint, presetID uint) (*models.ConversionPreset, error) {
+	var preset models.ConversionPreset
+	result := hs.db.Where("id = ? AND (user_id = ? OR is_public = ?)", presetID, userID, true).First(&preset)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &preset, nil
 }
 
 // UpdatePreset 更新预设

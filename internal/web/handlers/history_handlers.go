@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"github.com/Deali-Axy/ebook-generator/internal/web/models"
 	"github.com/Deali-Axy/ebook-generator/internal/web/services"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // 全局历史服务实例
@@ -160,11 +162,19 @@ func DeleteHistory(c *gin.Context) {
 
 	// 删除历史记录
 	if err := historyService.DeleteHistory(userID, uint(historyID)); err != nil {
-		c.JSON(http.StatusInternalServerError, models.APIResponse{
-			Code:    500,
-			Message: "删除历史记录失败",
-			Error:   err.Error(),
-		})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, models.APIResponse{
+				Code:    404,
+				Message: "历史记录不存在",
+				Error:   err.Error(),
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, models.APIResponse{
+				Code:    500,
+				Message: "删除历史记录失败",
+				Error:   err.Error(),
+			})
+		}
 		return
 	}
 
@@ -284,6 +294,62 @@ func GetPresets(c *gin.Context) {
 		Code:    200,
 		Message: "获取成功",
 		Data:    presets,
+	})
+}
+
+// GetPreset 获取单个转换预设
+// @Summary 获取单个转换预设
+// @Description 根据ID获取指定的转换预设
+// @Tags 转换预设
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "预设ID"
+// @Success 200 {object} models.APIResponse{data=models.ConversionPreset}
+// @Failure 400 {object} models.APIResponse
+// @Failure 401 {object} models.APIResponse
+// @Failure 404 {object} models.APIResponse
+// @Failure 500 {object} models.APIResponse
+// @Router /presets/{id} [get]
+func GetPreset(c *gin.Context) {
+	// 获取用户ID
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, models.APIResponse{
+			Code:    401,
+			Message: "用户未认证",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// 获取预设ID
+	presetIDStr := c.Param("id")
+	presetID, err := strconv.ParseUint(presetIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.APIResponse{
+			Code:    400,
+			Message: "无效的预设ID",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	// 获取预设
+	preset, err := historyService.GetPreset(userID, uint(presetID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, models.APIResponse{
+			Code:    404,
+			Message: "预设不存在",
+			Error:   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.APIResponse{
+		Code:    200,
+		Message: "获取成功",
+		Data:    preset,
 	})
 }
 
