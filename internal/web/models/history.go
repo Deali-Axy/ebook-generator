@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 	"gorm.io/gorm"
@@ -36,6 +38,43 @@ type ConversionHistory struct {
 
 // ConvertOptionsJSON 转换选项JSON类型
 type ConvertOptionsJSON map[string]interface{}
+
+// Value 实现 driver.Valuer 接口
+func (c ConvertOptionsJSON) Value() (driver.Value, error) {
+	if c == nil {
+		return nil, nil
+	}
+	data, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return string(data), nil
+}
+
+// Scan 实现 sql.Scanner 接口
+func (c *ConvertOptionsJSON) Scan(value interface{}) error {
+	if value == nil {
+		*c = make(ConvertOptionsJSON)
+		return nil
+	}
+
+	var data []byte
+	switch v := value.(type) {
+	case string:
+		data = []byte(v)
+	case []byte:
+		data = v
+	default:
+		return fmt.Errorf("cannot scan %T into ConvertOptionsJSON", value)
+	}
+
+	if len(data) == 0 {
+		*c = make(ConvertOptionsJSON)
+		return nil
+	}
+
+	return json.Unmarshal(data, c)
+}
 
 // HistoryListRequest 历史记录列表请求
 type HistoryListRequest struct {

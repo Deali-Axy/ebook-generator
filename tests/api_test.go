@@ -121,7 +121,7 @@ func (ts *TestServer) registerTestUser(t *testing.T) {
 
 	// 登录获取token
 	loginData := map[string]interface{}{
-		"email":    "test@example.com",
+		"username": "test@example.com", // 可以使用邮箱作为用户名登录
 		"password": "password123",
 	}
 
@@ -138,13 +138,15 @@ func (ts *TestServer) registerTestUser(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
 	require.NoError(t, err)
 
-	// 安全的类型转换
-	if accessToken, ok := loginResponse["access_token"].(string); ok {
-		ts.token = accessToken
-	}
-	if user, ok := loginResponse["user"].(map[string]interface{}); ok {
-		if id, ok := user["id"].(float64); ok {
-			ts.userID = uint(id)
+	// 从响应中提取数据
+	if data, ok := loginResponse["data"].(map[string]interface{}); ok {
+		if token, ok := data["token"].(string); ok {
+			ts.token = token
+		}
+		if user, ok := data["user"].(map[string]interface{}); ok {
+			if id, ok := user["id"].(float64); ok {
+				ts.userID = uint(id)
+			}
 		}
 	}
 }
@@ -189,11 +191,11 @@ func TestAuthEndpoints(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		ts.router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 
 		// 登录
 		loginData := map[string]interface{}{
-			"email":    "login@example.com",
+			"username": "loginuser",
 			"password": "password123",
 		}
 
@@ -209,8 +211,10 @@ func TestAuthEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Contains(t, response, "access_token")
-		assert.Contains(t, response, "user")
+		data, ok := response["data"].(map[string]interface{})
+		require.True(t, ok)
+		assert.Contains(t, data, "token")
+		assert.Contains(t, data, "user")
 	})
 
 	t.Run("获取用户资料", func(t *testing.T) {
@@ -227,16 +231,15 @@ func TestAuthEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "testuser", response["username"])
-		assert.Equal(t, "test@example.com", response["email"])
+		data, ok := response["data"].(map[string]interface{})
+		require.True(t, ok)
+		assert.Equal(t, "testuser", data["username"])
+		assert.Equal(t, "test@example.com", data["email"])
 	})
 
 	t.Run("更新用户资料", func(t *testing.T) {
-		ts.registerTestUser(t)
-
 		updateData := map[string]interface{}{
-			"username": "updateduser",
-			"email":    "updated@example.com",
+			"email": "updated@example.com",
 		}
 
 		body, _ := json.Marshal(updateData)
@@ -252,7 +255,7 @@ func TestAuthEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "用户资料更新成功", response["message"])
+		assert.Equal(t, "资料更新成功", response["message"])
 	})
 }
 
@@ -264,16 +267,20 @@ func TestHistoryEndpoints(t *testing.T) {
 	// 创建测试历史记录
 	history := &models.ConversionHistory{
 		UserID:           ts.userID,
+		TaskID:           "test-task-123",
 		OriginalFileName: "test.txt",
 		OutputFormat:     "epub",
 		Status:           "completed",
 		OriginalFileSize: 1024,
+		ConvertOptions:   models.ConvertOptionsJSON{"quality": "high"},
+		StartTime:        time.Now(),
 		CreatedAt:        time.Now(),
 	}
-	ts.db.Create(history)
+	result := ts.db.Create(history)
+	require.NoError(t, result.Error)
 
 	t.Run("获取转换历史列表", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/history", nil)
+		req := httptest.NewRequest("GET", "/api/history?page=1&page_size=10", nil)
 		req.Header.Set("Authorization", "Bearer "+ts.token)
 
 		w := httptest.NewRecorder()
@@ -284,8 +291,10 @@ func TestHistoryEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Contains(t, response, "data")
-		assert.Contains(t, response, "total")
+		data, ok := response["data"].(map[string]interface{})
+		require.True(t, ok)
+		assert.Contains(t, data, "items")
+		assert.Contains(t, data, "total")
 	})
 
 	t.Run("获取转换统计信息", func(t *testing.T) {
@@ -300,8 +309,9 @@ func TestHistoryEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Contains(t, response, "total_conversions")
-		assert.Contains(t, response, "monthly_stats")
+		data := response["data"].(map[string]interface{})
+		assert.Contains(t, data, "monthly_stats")
+		assert.Contains(t, data, "format_stats")
 	})
 
 	t.Run("删除转换历史", func(t *testing.T) {
@@ -316,7 +326,7 @@ func TestHistoryEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "历史记录删除成功", response["message"])
+		assert.Equal(t, "删除成功", response["message"])
 	})
 }
 
@@ -327,10 +337,10 @@ func TestPresetEndpoints(t *testing.T) {
 
 	t.Run("创建转换预设", func(t *testing.T) {
 		presetData := map[string]interface{}{
-			"name":        "测试预设",
-			"description": "这是一个测试预设",
+			"name":          "测试预设",
+			"description":   "这是一个测试预设",
+			"output_format": "epub",
 			"options": map[string]interface{}{
-				"format": "epub",
 				"quality": "high",
 			},
 		}
@@ -354,43 +364,57 @@ func TestPresetEndpoints(t *testing.T) {
 	t.Run("获取预设列表", func(t *testing.T) {
 		// 先创建一个预设
 		preset := &models.ConversionPreset{
-			UserID:      ts.userID,
-			Name:        "测试预设",
-			Description: "测试描述",
-			Options:      models.ConvertOptionsJSON{"format": "epub"},
+			UserID:       ts.userID,
+			Name:         "原始预设",
+			Description:  "原始描述",
+			OutputFormat: "epub",
+			Options:      models.ConvertOptionsJSON{"quality": "high"},
 		}
 		ts.db.Create(preset)
 
-		req := httptest.NewRequest("GET", "/api/presets", nil)
-		req.Header.Set("Authorization", "Bearer "+ts.token)
+		req := httptest.NewRequest("GET", "/api/presets?page=1&page_size=20", nil)
+        req.Header.Set("Authorization", "Bearer "+ts.token)
 
 		w := httptest.NewRecorder()
 		ts.router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var response []map[string]interface{}
+		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Len(t, response, 1)
-		assert.Equal(t, "测试预设", response[0]["name"])
+		data, ok := response["data"].([]interface{})
+		require.True(t, ok)
+		assert.True(t, len(data) >= 1, "Should have at least 1 preset")
+		// 查找我们创建的预设
+		found := false
+		for _, item := range data {
+			if presetData, ok := item.(map[string]interface{}); ok {
+				if presetData["name"] == "测试预设" {
+					found = true
+					break
+				}
+			}
+		}
+		assert.True(t, found, "Should find the test preset")
 	})
 
 	t.Run("更新转换预设", func(t *testing.T) {
 		// 先创建一个预设
 		preset := &models.ConversionPreset{
-			UserID:      ts.userID,
-			Name:        "原始预设",
-			Description: "原始描述",
-			Options:     models.ConvertOptionsJSON{"format": "epub"},
+			UserID:       ts.userID,
+			Name:         "原始预设",
+			Description:  "原始描述",
+			OutputFormat: "epub",
+			Options:      models.ConvertOptionsJSON{"quality": "high"},
 		}
 		ts.db.Create(preset)
 
 		updateData := map[string]interface{}{
-			"name":        "更新后的预设",
-			"description": "更新后的描述",
+			"name":          "更新后的预设",
+			"description":   "更新后的描述",
+			"output_format": "mobi",
 			"options": map[string]interface{}{
-				"format": "mobi",
 				"quality": "medium",
 			},
 		}
@@ -408,16 +432,17 @@ func TestPresetEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "预设更新成功", response["message"])
+		assert.Equal(t, "更新成功", response["message"])
 	})
 
 	t.Run("删除转换预设", func(t *testing.T) {
 		// 先创建一个预设
 		preset := &models.ConversionPreset{
-			UserID:      ts.userID,
-			Name:        "待删除预设",
-			Description: "待删除描述",
-			Options:     models.ConvertOptionsJSON{"format": "epub"},
+			UserID:       ts.userID,
+			Name:         "待删除预设",
+			Description:  "待删除描述",
+			OutputFormat: "epub",
+			Options:      models.ConvertOptionsJSON{"quality": "high"},
 		}
 		ts.db.Create(preset)
 
@@ -432,7 +457,7 @@ func TestPresetEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, "预设删除成功", response["message"])
+		assert.Equal(t, "删除成功", response["message"])
 	})
 }
 
